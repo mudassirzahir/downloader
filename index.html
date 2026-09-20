@@ -3,9 +3,43 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Movie Downloader</title>
+  <script>
+    // GitHub Pages serves this project from /mudassirzahir/downloader/ rather
+    // than from the domain root. Keep local asset URLs inside that project
+    // path while leaving absolute external URLs untouched.
+    (() => {
+      const base = '/mudassirzahir/downloader/';
+      const localAsset = value => {
+        if (typeof value !== 'string' || !value.startsWith('/')) return value;
+        return base + value.slice(1);
+      };
+
+      const patchUrlProperty = (prototype, property) => {
+        const descriptor = Object.getOwnPropertyDescriptor(prototype, property);
+        if (!descriptor?.set || !descriptor?.get) return;
+        Object.defineProperty(prototype, property, {
+          configurable: descriptor.configurable,
+          enumerable: descriptor.enumerable,
+          get: descriptor.get,
+          set(value) { descriptor.set.call(this, localAsset(value)); }
+        });
+      };
+
+      patchUrlProperty(HTMLImageElement.prototype, 'src');
+      patchUrlProperty(HTMLScriptElement.prototype, 'src');
+      patchUrlProperty(HTMLLinkElement.prototype, 'href');
+      patchUrlProperty(HTMLSourceElement.prototype, 'src');
+
+      const originalFetch = window.fetch;
+      window.fetch = (input, init) => {
+        if (typeof input === 'string') input = localAsset(input);
+        return originalFetch.call(window, input, init);
+      };
+    })();
+  </script>
   <script type="module" crossorigin src="./assets/index-BiAmIJOL.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-8GkCESxY.css">
 </head>
